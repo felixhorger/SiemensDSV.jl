@@ -1,3 +1,4 @@
 # SiemensDSV.jl
 Reader of Siemens DSV files.
-Julia-port for Raphael Tomi-Tricot's Matlab version.
+Julia-port of Raphael Tomi-Tricot's Matlab version.
+
