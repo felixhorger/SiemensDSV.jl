@@ -1,0 +1,7 @@
+name = "SiemensDSV"
+uuid = "20be6462-cd53-433e-8253-222237af0e6c"
+authors = ["Felix Horger <felix.horger@kcl.ac.uk>"]
+version = "0.1.0"
+
+[deps]
+StringEncodings = "69024149-9ee7-55f6-a4c4-859efe599b68"
