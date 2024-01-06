@@ -6,16 +6,23 @@ module SiemensDSV
 
 	# TODO: use julia's load framework
 
+	function parse_section(str::AbstractString)
+		return Dict{String, String}(map(
+			p -> Pair(p...),
+			filter(
+				v -> length(v) == 2,
+				split.(split(str, "\r\n"), '=')
+			)
+		))
+	end
+
 	function dsvread(filename)
 		data = read(filename, String, Encoding("Latin1"))
 
 		# This procedure could go into separate function, same for "frame"
 		defs_start = findfirst("[DEFINITIONS]", data).stop + 3 # +3 for CR+LF+1
 		defs_end = findnext("\r\n\r\n", data, defs_start).start - 2
-		defs = Dict{String, String}(map(
-			p -> Pair(p...),
-			split.(split(data[defs_start:defs_end], "\r\n"),'=')
-		))
+		defs = parse_section(data[defs_start:defs_end])
 		num_samples = parse(Int, defs["SAMPLES"])
 		δt = parse(Float64, defs["HORIDELTA"])
 		vertfactor = parse(Float64, defs["VERTFACTOR"])
@@ -27,10 +34,7 @@ module SiemensDSV
 		frame_start = findfirst("[FRAME]", data).stop + 3 # Is the order of entries the same every time?
 		frame_end = findnext("\r\n\r\n", data, frame_start).start - 2
 		if frame_end > frame_start
-			frame = Dict{String, Any}(map(
-				p -> Pair(p...),
-				split.(split(data[frame_start:frame_end], "\r\n"),'=')
-			))
+			frame = parse_section(data[frame_start:frame_end])
 		else
 			frame = Dict{String, Any}()
 		end
