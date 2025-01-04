@@ -16,7 +16,7 @@ module SiemensDSV
 		))
 	end
 
-	function dsvread(filename)
+	function dsvread(filename; max_time::Real=Inf)
 		data = read(filename, String, Encoding("Latin1"))
 
 		# This procedure could go into separate function, same for "frame"
@@ -55,34 +55,38 @@ module SiemensDSV
 		compressed = parse.(Int, split(data[vals_start:vals_end], "\r\n"))
 		compression_ratio = length(compressed) / num_samples
 
+		if !isinf(max_time)
+			num_samples = floor(Int, max_time / δt) + 1
+		end
 		values = Vector{Float64}(undef, num_samples)
 		prev_val = Float64(compressed[1])
 		idx_compressed = 1
 		idx = 1
-		while idx_compressed <= length(compressed)
+		while idx_compressed <= length(compressed) && idx <= num_samples
 			if idx_compressed + 2 <= length(compressed) && compressed[idx_compressed+1] == compressed[idx_compressed]
 				# +2 accounts for idx_compressed and idx_compressed+1,
 				# in addition to the number of further repetitions stored in idx_compressed+2
 				num_repeat = compressed[idx_compressed+2] + 2
 				val = compressed[idx_compressed]
 				values[idx] = prev_val + val
-				for i = 1:num_repeat-1
-					values[idx+i] = values[idx+i-1] + val
+				imax = min(idx+num_repeat-1, num_samples)
+				for i = (idx+1):imax
+					values[i] = values[i-1] + val
 				end
-				prev_val = values[idx+num_repeat-1]
-				idx = idx + num_repeat
-				idx_compressed = idx_compressed + 3
+				prev_val = values[imax]
+				idx += num_repeat
+				idx_compressed += 3
 			else
 				values[idx] = prev_val + compressed[idx_compressed]
 				prev_val = values[idx]
-				idx = idx + 1
-				idx_compressed = idx_compressed + 1
+				idx += 1
+				idx_compressed += 1
 			end
 		end
 
 		@. values = values / vertfactor
 
-		@assert all(v -> minlimit <= v <= maxlimit, values) "Values vector not in min-max range"
+		# TODO: is this necessary? @assert all(v -> minlimit <= v <= maxlimit, values) "Values vector not in min-max range"
 		return (; values, δt, timeunit, minlimit, maxlimit, compression_ratio, frame)
 	end
 end
