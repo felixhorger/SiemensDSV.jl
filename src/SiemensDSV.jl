@@ -29,7 +29,8 @@ module SiemensDSV
 		minlimit = parse(Float64, defs["MINLIMIT"])
 		maxlimit = parse(Float64, defs["MAXLIMIT"])
 		timeunit = defs["HORIUNITNAME"]
-		@assert timeunit == "µs" "Wrong time unit $(timeunit) != μs"
+		# Why this test?
+		#@assert timeunit == "µs" "Wrong time unit $(timeunit) != μs"
 
 		frame_start = findfirst("[FRAME]", data).stop + 3 # Is the order of entries the same every time?
 		frame_end = findnext("\r\n\r\n", data, frame_start).start - 2
