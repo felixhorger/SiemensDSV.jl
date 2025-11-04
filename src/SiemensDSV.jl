@@ -59,8 +59,8 @@ module SiemensDSV
 		if !isinf(max_time)
 			num_samples = floor(Int, max_time / δt) + 1
 		end
-		values = Vector{Float64}(undef, num_samples)
-		prev_val = Float64(compressed[1])
+		values = Vector{Int64}(undef, num_samples)
+		prev_val = compressed[1]
 		idx_compressed = 1
 		idx = 1
 		while idx_compressed <= length(compressed) && idx <= num_samples
@@ -85,10 +85,11 @@ module SiemensDSV
 			end
 		end
 
-		@. values = values / vertfactor
+        # The values with the correct unit would be
+		#@. values = values / vertfactor
 
 		# TODO: is this necessary? @assert all(v -> minlimit <= v <= maxlimit, values) "Values vector not in min-max range"
-		return (; values, δt, timeunit, minlimit, maxlimit, compression_ratio, frame)
+		return (; values, vertfactor, δt, timeunit, minlimit, maxlimit, compression_ratio, frame)
 	end
 end
 
